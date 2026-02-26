@@ -19,6 +19,33 @@ from process.utils import create_engine_from_config
 # }
 
 
+#Table pour les seuils d'IBM
+
+# https://www.bretagne.ars.sante.fr/fortes-chaleurs-et-canicule
+
+# CREATE TABLE veloclimat.seuils_ibm_canicule (
+#     id SERIAL PRIMARY KEY,
+# nom_departement VARCHAR(50) NOT NULL,
+# code_departement VARCHAR(3) NOT NULL,
+# ibm_min_nuit DECIMAL(4,1) NOT NULL,
+# ibm_max_jour DECIMAL(4,1) NOT NULL,
+# annee_seuil INTEGER NOT NULL,
+# date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+# );
+#
+# -- Insertion des données pour 2026
+# INSERT INTO veloclimat.seuils_ibm_canicule (nom_departement, code_departement, ibm_min_nuit, ibm_max_jour, annee_seuil) VALUES
+# ('Ille-et-Vilaine', '35', 18.0, 33.0, 2026),
+# ('Morbihan', '56', 18.0, 33.0, 2026),
+# ('Loire-Atlantique', '44', 20.0, 34.0, 2026),
+# ('Maine-et-Loire', '49', 18.0, 33.0, 2026),
+# ('Mayenne', '53', 18.0, 33.0, 2026),
+# ('Orne', '61', 18.0, 34.0, 2026),
+# ('Somme', '80', 18.0, 33.0, 2026),
+# ('Pas-de-Calais', '62', 18.0, 33.0, 2026),
+# ('Nord', '59', 18.0, 33.0, 2026);
+
+
 def _is_subquery(input_table):
     """
     Détecte si input_table est un subquery (SELECT) ou une simple table
