@@ -4,15 +4,15 @@ from process.utils import create_engine_from_config
 
 def interpolate_temperature(conn):
     """
-    This script is used to interpolate temperature for each Veloclimatmeter location based on Météo-France stations.
+    This script is used to interpolate temperature for each labsticc reference sensors based on Météo-France stations.
 
     Input:
-    - Cleaned Veloclimatmeter sensor data (veloclimat.veloclimatmeter_meteo_preprocess)
+    - Cleaned labsticc sensor reference data (veloclimat.labsticc_sensors_reference_preprocess)
     - Triangulated weather stations (veloclimat.weather_stations_mf_delaunay)
     - Points of the Delaunay triangles with station IDs (veloclimat.weather_stations_mf_delaunay_pts)
 
     Output:
-    - veloclimat.veloclimatmeter_temperature_interpolate: Interpolated temperature for each location based on Météo-France stations
+    - veloclimat.labsticc_sensors_reference_temperature_interpolate: Interpolated temperature for each location based on Météo-France stations
 
     Args:
         conn: connexion SQLAlchemy
@@ -20,49 +20,50 @@ def interpolate_temperature(conn):
     print("\n📊 Préparation des données...")
 
     query = """
-            -- 1 For each veloclimatmeter location returns its triangle id and the triangle points
+            -- 1 For each lab-sticc sensors location returns its triangle id and the triangle points
             -- So we can have the 3 MF stations for the locations            
-            drop table if exists veloclimat.veloclimatmeter_meteo_delaunay_pts ;
-            create table veloclimat.veloclimatmeter_meteo_delaunay_pts as
+            drop table if exists veloclimat.labsticc_sensors_reference_delaunay_pts ;
+            create table veloclimat.labsticc_sensors_reference_delaunay_pts as
             select pts.id_pt , pts.the_geom as geom_pt_triangle, pts.id_triangle, pts.numer_insee, t.id, t.the_geom as geom_pt_velo,
                    t.timestamp, t.elevation, t.temperature  from veloclimat.weather_stations_mf_delaunay_pts as pts, (
-                select  b.id_triangle, a.id , a.the_geom, a.elevation, a.temperature, a.timestamp  
-                from veloclimat.veloclimatmeter_meteo_preprocess as a,
+                select  b.id_triangle, a.id , a.the_geom, a.elevation, a.temperature, a.timestamp 
+                from veloclimat.labsticc_sensors_reference_preprocess as a,
                 veloclimat.weather_stations_mf_delaunay  as b where st_intersects(a.the_geom, b.the_geom)) as t
             where pts.id_triangle = t.id_triangle;
 
-            create index on veloclimat.veloclimatmeter_meteo_delaunay_pts(numer_insee);
-            create index on veloclimat.veloclimatmeter_meteo_delaunay_pts("timestamp");
+            create index on veloclimat.labsticc_sensors_reference_delaunay_pts(numer_insee);
+            create index on veloclimat.labsticc_sensors_reference_delaunay_pts("timestamp");
 
-            -- 2 Collect the weather station data for each veloclimatmeter location from the delaunay points
+            -- 2 Collect the weather station data for each lab-sticc sensors location from the delaunay points
             -- Update the time position
             -- Note : delta_t, t_ground_0 must be computed before on weather_data_stations_mf
-            drop table if exists veloclimat.veloclimatmeter_meteo_mf_stations_data;
-            create table  veloclimat.veloclimatmeter_meteo_mf_stations_data
+            drop table if exists veloclimat.labsticc_sensors_reference_mf_stations_data;
+            create table  veloclimat.labsticc_sensors_reference_mf_stations_data
             as
             select b.t_ground_0,  EXTRACT(EPOCH from (a."timestamp" - b."date"))/360 as time_interp_weight,b.delta_t, a.*
-            from veloclimat.veloclimatmeter_meteo_delaunay_pts as a , veloclimat.weather_data_stations_mf as b
+            from veloclimat.labsticc_sensors_reference_delaunay_pts as a , veloclimat.weather_data_stations_mf as b
             where a.numer_insee= b.numer_sta and b."date" > (a."timestamp"  - INTERVAL '6 Minutes')  and b."date" <= a."timestamp";
             
-            create index on veloclimat.veloclimatmeter_meteo_mf_stations_data(id_triangle);
-            create index on veloclimat.veloclimatmeter_meteo_mf_stations_data(id);            
+            create index on veloclimat.labsticc_sensors_reference_mf_stations_data(id_triangle);
+            create index on veloclimat.labsticc_sensors_reference_mf_stations_data(id);            
             """
 
     conn.execute(text(query))
     conn.commit()
-    print("✅ Relation entre les stations triangulées et les points du veloclimatmeter réalisées avec succès !")
+    print("✅ Relation entre les stations triangulées et les points des labsticc sensors réalisées avec succès !")
 
     query_interpolate = """
-                        -- Create the final table that contains the mesured temperature 
+                        -- Create the final table that contains the referenced temperature 
                         -- and the interpolated temperature based on weather stations
-                        drop table if exists veloclimat.veloclimatmeter_temperature_interpolate_tmp;
+                        drop table if exists veloclimat.labsticc_sensors_reference_temperature_interpolate;
                         
-                        create table veloclimat.veloclimatmeter_temperature_interpolate_tmp as
+                        create table veloclimat.labsticc_sensors_reference_temperature_interpolate as
 
                         SELECT DISTINCT ON (id) id,
                         "timestamp",
                         temperature,
                         t_inter ,
+                        temperature - t_inter as DIFF_TEMPERATURE,
                         geom_pt_velo as the_geom,
                         id_triangle
                         from (
@@ -90,43 +91,26 @@ def interpolate_temperature(conn):
                                                 ), 4326) AS polygon_delta_t,
                                      id_triangle,
                                      id
-                                 FROM veloclimat.veloclimatmeter_meteo_mf_stations_data
+                                 FROM veloclimat.labsticc_sensors_reference_mf_stations_data
                                  GROUP BY id_triangle, id
                              ) AS triangles
-                                 JOIN veloclimat.veloclimatmeter_meteo_mf_stations_data s
+                                 JOIN veloclimat.labsticc_sensors_reference_mf_stations_data s
                                       ON triangles.id_triangle = s.id_triangle
                                           AND triangles.id = s.id
                                           ) as foo ORDER BY id, "timestamp" DESC;
                         
-                        CREATE INDEX ON veloclimat.veloclimatmeter_temperature_interpolate_tmp(id);
-                        
-                        DROP TABLE IF EXISTS veloclimat.veloclimatmeter_temperature_interpolate;
-                        
-                        --Recupere les données pour comparer
-                        CREATE TABLE veloclimat.veloclimatmeter_temperature_interpolate AS
-                        SELECT
-                            vti.id,
-                            vti."timestamp",
-                            vti.temperature,
-                            vti.t_inter,
-                            vti.the_geom,
-                            vti.id_triangle,
-                            vti.temperature - vti.t_inter as DIFF_TEMPERATURE,
-                            vmp.speed_m_s,
-                            vmp.temperature_bot,
-                            vmp.temperature_top,
-                            vmp.elevation
-                        FROM veloclimat.veloclimatmeter_temperature_interpolate_tmp vti
-                        LEFT JOIN veloclimat.veloclimatmeter_meteo_preprocess vmp
-                            ON vti.id = vmp.id;                        
-                        DROP TABLE IF EXISTS veloclimatmeter_temperature_interpolate_tmp, veloclimat.veloclimatmeter_meteo_mf_stations_data, veloclimat.veloclimatmeter_meteo_delaunay_pts;
+                        CREATE INDEX ON veloclimat.labsticc_sensors_reference_temperature_interpolate(id);
+                                                
+                       
+                        DROP TABLE IF EXISTS  veloclimat.labsticc_sensors_reference_mf_stations_data, veloclimat.labsticc_sensors_reference_delaunay_pts;
                         """
     conn.execute(text(query_interpolate))
     conn.commit()
 
 
+
 def main():
-      # Créer l'engine
+    # Créer l'engine
     engine = create_engine_from_config("config.json")
 
     try:

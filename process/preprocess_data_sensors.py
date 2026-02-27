@@ -75,6 +75,9 @@ def clean_veloclimatmeter_data(conn):
             CREATE INDEX idx_veloclimatmeter_meteo_preprocess_unique_id_track
                 ON veloclimat.veloclimatmeter_meteo_preprocess (unique_id_track);
 
+            CREATE INDEX idx_veloclimatmeter_meteo_preprocess_id
+                ON veloclimat.veloclimatmeter_meteo_preprocess (id);
+
             CREATE INDEX idx_veloclimatmeter_meteo_preprocess_timestamp
                 ON veloclimat.veloclimatmeter_meteo_preprocess ("timestamp");
 
@@ -88,11 +91,11 @@ def clean_veloclimatmeter_data(conn):
     print("✅ Table veloclimatmeter_meteo_preprocess created !")
 
 
-def clean_labsticc_sensor_data(conn):
+def clean_labsticc_sensors_data(conn):
     """
-    Clean and create two tables: labsticc_sensor_preprocess and labsticc_sensor_reference_preprocess.
+    Clean and create two tables: labsticc_sensors_preprocess and labsticc_sensors_reference_preprocess.
 
-    labsticc_sensor_preprocess contains the data collected during mobile thermal measurements.
+    labsticc_sensors_preprocess contains the data collected during mobile thermal measurements.
 
     The following processes are applied:
     - Remove duplicate entries in the input data.
@@ -100,22 +103,22 @@ def clean_labsticc_sensor_data(conn):
     - Exclude data with GPS accuracy > 25 meters.
     - Calculate speeds between consecutive points and using a sliding window.
 
-    labsticc_sensor_reference_preprocess stores the data for reference sensors (fixed stations).
+    labsticc_sensors_reference_preprocess stores the data for reference sensors (fixed stations).
     The following processes are applied:
     - Aggregate data by second (using DATE_TRUNC).
 
     Args:
     conn: SQLAlchemy connection.
     """
-    print("\n📊 Clean labsticc_sensor_raw...")
+    print("\n📊 Clean labsticc_sensors_raw...")
 
     query = """
             -- 1. Drop temporary tables if they exist
-            DROP TABLE IF EXISTS veloclimat.labsticc_sensor_unique;
-            DROP TABLE IF EXISTS veloclimat.labsticc_sensor_preprocess;
+            DROP TABLE IF EXISTS veloclimat.labsticc_sensors_unique;
+            DROP TABLE IF EXISTS veloclimat.labsticc_sensors_preprocess;
 
             -- 2. First step: Deduplication and aggregation of raw data
-            CREATE TABLE veloclimat.labsticc_sensor_unique AS
+            CREATE TABLE veloclimat.labsticc_sensors_unique AS
             SELECT
                 max(id) as id,
                 sensor_name,
@@ -132,7 +135,7 @@ def clean_labsticc_sensor_data(conn):
             GROUP BY DATE_TRUNC('second', "timestamp"), sensor_name, thermo_name, id_track;
 
             -- 3. Second step: Remove exact duplicates and stationary points
-            CREATE TABLE veloclimat.labsticc_sensor_preprocess AS
+            CREATE TABLE veloclimat.labsticc_sensors_preprocess AS
             WITH unique_rows AS (
                 SELECT
                     id,
@@ -148,7 +151,7 @@ def clean_labsticc_sensor_data(conn):
                     ROW_NUMBER() OVER (
             PARTITION BY sensor_name, thermo_name, the_geom, "timestamp"
             ORDER BY id) AS row_num
-                FROM veloclimat.labsticc_sensor_unique
+                FROM veloclimat.labsticc_sensors_unique
                 WHERE thermo_name NOT ILIKE '%reference%'),
 
             -- 4. Calculate speeds between consecutive points
@@ -211,26 +214,29 @@ def clean_labsticc_sensor_data(conn):
             FROM filtered_data;
 
             -- 6. Add unique key column and create indexes
-            ALTER TABLE veloclimat.labsticc_sensor_preprocess ADD COLUMN unique_id_track TEXT;
+            ALTER TABLE veloclimat.labsticc_sensors_preprocess ADD COLUMN unique_id_track TEXT;
 
-            UPDATE veloclimat.labsticc_sensor_preprocess
+            UPDATE veloclimat.labsticc_sensors_preprocess
             SET unique_id_track = encode(digest(
                                                  id_track::TEXT || '|' || sensor_name || '|' || thermo_name,
                                                  'md5'
                                          ), 'hex');
 
-            CREATE INDEX idx_labsticc_sensor_preprocess_unique_id_track
-                ON veloclimat.labsticc_sensor_preprocess (unique_id_track);
+            CREATE INDEX idx_labsticc_sensors_preprocess_unique_id_track
+                ON veloclimat.labsticc_sensors_preprocess (unique_id_track);
 
-            CREATE INDEX idx_labsticc_sensor_preprocess_timestamp
-                ON veloclimat.labsticc_sensor_preprocess ("timestamp");
+            CREATE INDEX idx_labsticc_sensors_preprocess_timestamp
+                ON veloclimat.labsticc_sensors_preprocess ("timestamp");
 
-            CREATE INDEX idx_labsticc_sensor_preprocess_the_geom
-                ON veloclimat.labsticc_sensor_preprocess using GIST (the_geom);
+            CREATE INDEX idx_labsticc_sensors_preprocess_the_geom
+                ON veloclimat.labsticc_sensors_preprocess using GIST (the_geom);
+
+            CREATE INDEX idx_labsticc_sensors_preprocess_id
+                ON veloclimat.labsticc_sensors_preprocess (id);
 
             -- Update the speed_m_s column with the new points
             -- We use the unique_id_track as identifier
-            UPDATE veloclimat.labsticc_sensor_preprocess AS target
+            UPDATE veloclimat.labsticc_sensors_preprocess AS target
             SET speed_m_s = speed_data.speed_m_s
                 FROM (
                 -- Calculate speeds between consecutive points
@@ -242,7 +248,7 @@ def clean_labsticc_sensor_data(conn):
                         "timestamp",
                         LAG(the_geom) OVER (PARTITION BY unique_id_track ORDER BY "timestamp") AS prev_the_geom,
                         LAG("timestamp") OVER (PARTITION BY unique_id_track ORDER BY "timestamp") AS prev_timestamp
-                    FROM veloclimat.labsticc_sensor_preprocess
+                    FROM veloclimat.labsticc_sensors_preprocess
                 ),
                 speed_data AS (
                     SELECT
@@ -259,12 +265,12 @@ def clean_labsticc_sensor_data(conn):
             ) AS speed_data WHERE target.id = speed_data.id;
 
             -- Add a column to compute the smoothed speed
-            ALTER TABLE veloclimat.labsticc_sensor_preprocess ADD COLUMN speed_m_s_smooth DOUBLE PRECISION;
+            ALTER TABLE veloclimat.labsticc_sensors_preprocess ADD COLUMN speed_m_s_smooth DOUBLE PRECISION;
 
             -- Update the speed_m_s_smooth column with a sliding window average
             -- We use the unique_id_track as identifier
             -- 5 points : ROWS BETWEEN 4 PRECEDING AND CURRENT ROW
-            UPDATE veloclimat.labsticc_sensor_preprocess AS target
+            UPDATE veloclimat.labsticc_sensors_preprocess AS target
             SET speed_m_s_smooth = speed_smooth.speed_m_s_smooth
                 FROM (
                 SELECT
@@ -274,12 +280,12 @@ def clean_labsticc_sensor_data(conn):
                         ORDER BY "timestamp"
                         ROWS BETWEEN 4 PRECEDING AND CURRENT ROW
                     ) AS speed_m_s_smooth
-                FROM veloclimat.labsticc_sensor_preprocess
+                FROM veloclimat.labsticc_sensors_preprocess
             ) AS speed_smooth
                         WHERE target.id = speed_smooth.id;
                 
             --Clean db
-            DROP TABLE IF EXISTS veloclimat.labsticc_sensor_unique;            
+            DROP TABLE IF EXISTS veloclimat.labsticc_sensors_unique;            
             """
 
     conn.execute(text(query))
@@ -289,8 +295,8 @@ def clean_labsticc_sensor_data(conn):
     # data are merge to second
     # Keep reference sensors
     query = """
-            DROP TABLE IF EXISTS veloclimat.labsticc_sensor_reference_preprocess;
-            CREATE TABLE veloclimat.labsticc_sensor_reference_preprocess AS
+            DROP TABLE IF EXISTS veloclimat.labsticc_sensors_reference_preprocess;
+            CREATE TABLE veloclimat.labsticc_sensors_reference_preprocess AS
             SELECT
                 max(id) as id,
                 sensor_name, thermo_name, id_track,
@@ -301,31 +307,34 @@ def clean_labsticc_sensor_data(conn):
                 avg(accuracy) as accuracy,
                 avg(elevation) as elevation
             FROM veloclimat.labsticc_sensors_raw
-            WHERE  thermo_name  ilike '%reference%'
+            WHERE  thermo_name  ilike '%reference%' and temperature is not null
             GROUP BY DATE_TRUNC('second', "timestamp"), sensor_name, thermo_name, id_track;
 
             -- Add unique key column and create indexes
-            ALTER TABLE veloclimat.labsticc_sensor_reference_preprocess ADD COLUMN unique_id_track TEXT;
-            UPDATE veloclimat.labsticc_sensor_reference_preprocess
+            ALTER TABLE veloclimat.labsticc_sensors_reference_preprocess ADD COLUMN unique_id_track TEXT;
+            UPDATE veloclimat.labsticc_sensors_reference_preprocess
             SET unique_id_track = encode(digest(
                                                  id_track::TEXT || '|' || sensor_name || '|' || thermo_name,
                                                  'md5'
                                          ), 'hex');
 
-            CREATE INDEX idx_labsticc_sensor_reference_preprocess_unique_id_track
-                ON veloclimat.labsticc_sensor_reference_preprocess (unique_id_track);
+            CREATE INDEX idx_labsticc_sensors_reference_preprocess_unique_id_track
+                ON veloclimat.labsticc_sensors_reference_preprocess (unique_id_track);
 
-            CREATE INDEX idx_labsticc_sensor_reference_preprocess_timestamp
-                ON veloclimat.labsticc_sensor_reference_preprocess ("timestamp");
+            CREATE INDEX idx_labsticc_sensors_reference_preprocess_timestamp
+                ON veloclimat.labsticc_sensors_reference_preprocess ("timestamp");
 
-            CREATE INDEX idx_labsticc_sensor_reference_preprocess_the_geom
-                ON veloclimat.labsticc_sensor_reference_preprocess using GIST (the_geom);
+            CREATE INDEX idx_labsticc_sensors_reference_preprocess_the_geom
+                ON veloclimat.labsticc_sensors_reference_preprocess using GIST (the_geom);
+
+            CREATE INDEX idx_labsticc_sensors_reference_preprocess_id
+                ON veloclimat.labsticc_sensors_reference_preprocess (id);
             """
 
     conn.execute(text(query))
     conn.commit()
 
-    print("✅ Tables labsticc_sensor_preprocess and labsticc_sensor_reference_preprocess created !")
+    print("✅ Tables labsticc_sensors_preprocess and labsticc_sensors_reference_preprocess created !")
 
 
 def main():
@@ -344,7 +353,7 @@ def main():
 
             # Nettoyer les deux tables
             clean_veloclimatmeter_data(conn)
-            clean_labsticc_sensor_data(conn)
+            clean_labsticc_sensors_data(conn)
 
             print("\n" + "=" * 70)
             print("✅ Nettoyage des données terminé avec succès !")

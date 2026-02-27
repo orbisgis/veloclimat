@@ -172,7 +172,7 @@ It prepares the data for further analysis by ensuring it is clean, consistent, a
 
 This script prepares Météo-France weather station data.
 
-Input:
+Inputs:
 - The name of the station table: veloclimat.weather_stations_mf
 - The name of the weather data stations : weather_data_stations_mf
 
