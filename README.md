@@ -155,7 +155,7 @@ It prepares the data for further analysis by ensuring it is clean, consistent, a
 
 3 tables are save :
 
-- veloclimatmeter_meteo_raw_process
+- veloclimatmeter_meteo_preprocess
 - labsticc_sensor_preprocess
 - labsticc_sensor_reference_preprocess
 
