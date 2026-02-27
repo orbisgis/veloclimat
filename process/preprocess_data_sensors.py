@@ -77,6 +77,9 @@ def clean_veloclimatmeter_data(conn):
 
             CREATE INDEX idx_veloclimatmeter_meteo_preprocess_timestamp
                 ON veloclimat.veloclimatmeter_meteo_preprocess ("timestamp");
+
+            CREATE INDEX idx_veloclimatmeter_meteo_preprocess_the_geom
+                ON veloclimat.veloclimatmeter_meteo_preprocess using GIST (the_geom);
             """
 
     conn.execute(text(query))
@@ -222,6 +225,9 @@ def clean_labsticc_sensor_data(conn):
             CREATE INDEX idx_labsticc_sensor_preprocess_timestamp
                 ON veloclimat.labsticc_sensor_preprocess ("timestamp");
 
+            CREATE INDEX idx_labsticc_sensor_preprocess_the_geom
+                ON veloclimat.labsticc_sensor_preprocess using GIST (the_geom);
+
             -- Update the speed_m_s column with the new points
             -- We use the unique_id_track as identifier
             UPDATE veloclimat.labsticc_sensor_preprocess AS target
@@ -311,6 +317,9 @@ def clean_labsticc_sensor_data(conn):
 
             CREATE INDEX idx_labsticc_sensor_reference_preprocess_timestamp
                 ON veloclimat.labsticc_sensor_reference_preprocess ("timestamp");
+
+            CREATE INDEX idx_labsticc_sensor_reference_preprocess_the_geom
+                ON veloclimat.labsticc_sensor_reference_preprocess using GIST (the_geom);
             """
 
     conn.execute(text(query))
