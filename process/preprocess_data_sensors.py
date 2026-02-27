@@ -45,6 +45,7 @@ def clean_veloclimatmeter_data(conn):
                 st_centroid(st_collect(THE_GEOM)) as THE_GEOM,
                 avg(altitude) as altitude,
                 avg(vitesse) as vitesse,
+                avg(vitesse)/3.6 as speed_m_s,
                 avg(direction) as direction,
                 avg(temperature) as temperature,
                 avg(humidite) as humidite,

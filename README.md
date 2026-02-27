@@ -148,7 +148,7 @@ A set of scripts to analyse the VeloClimat sensor data
 
 # Scripts
 
-# Preprocess_data_sensors.py
+## preprocess_data_sensors.py
 
 This Python script cleans and preprocesses raw sensor data stored in a PostgreSQL database using SQLAlchemy. 
 It prepares the data for further analysis by ensuring it is clean, consistent, and well-structured.
@@ -159,7 +159,7 @@ It prepares the data for further analysis by ensuring it is clean, consistent, a
 - labsticc_sensor_preprocess
 - labsticc_sensor_reference_preprocess
 
-## Main Features
+### Main Features
 
 - **Data Cleaning:** Removes duplicates, filters by time and accuracy, and excludes specific entries.
 - **Aggregation:** Aggregates data by second for consistent time intervals.
@@ -167,6 +167,22 @@ It prepares the data for further analysis by ensuring it is clean, consistent, a
 - **Unique Identifiers:** Generates unique identifiers for tracking.
 - **Indexing:** Adds indexes for efficient querying.
 
----
+
+## prepare_weather_stations_delaunay.py
+
+This script prepares Météo-France weather station data.
+
+Input:
+- The name of the station table: veloclimat.weather_stations_mf
+- The name of the weather data stations : weather_data_stations_mf
+
+Each Météo-France station is connected to two other stations through Delaunay triangulation. 
+The triangles are used to perform linear interpolation of values from the Météo-France data 
+stored in the veloclimat.weather_data_stations_mf table.
+
+Output :
+- veloclimat.weather_stations_mf_delaunay that contains the delaunay triangles
+- veloclimat.weather_stations_mf_delaunay_pts delaunay points with the station identifier (numer_insee/numer_stat)
+
 
 
