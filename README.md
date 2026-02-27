@@ -184,5 +184,19 @@ Output :
 - veloclimat.weather_stations_mf_delaunay that contains the delaunay triangles
 - veloclimat.weather_stations_mf_delaunay_pts delaunay points with the station identifier (numer_insee/numer_stat)
 
+## interpolate_veloclimatmeter_meteo_temperature.py
+
+This script is used to interpolate temperature for each Veloclimatmeter location based on Météo-France stations.
+
+Inputs
+
+- **Cleaned Veloclimatmeter sensor data**: `veloclimat.veloclimatmeter_meteo_preprocess`
+- **Triangulated weather stations**: `veloclimat.weather_stations_mf_delaunay`
+- **Points of the Delaunay triangles with station IDs**: `veloclimat.weather_stations_mf_delaunay_pts`
+
+Output
+
+- **Interpolated temperature data**: `veloclimat.veloclimatmeter_temperature_interpolate`
+  Interpolated temperature for each location based on Météo-France stations
 
 
