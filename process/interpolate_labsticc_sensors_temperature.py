@@ -12,7 +12,7 @@ def interpolate_temperature_MF_stations(conn):
     - Points of the Delaunay triangles with station IDs (veloclimat.weather_stations_mf_delaunay_pts)
 
     Output:
-    - veloclimat.veloclimat.labsticc_sensors_temperature_interpolate: Interpolated temperature for each location based on Météo-France stations
+    - veloclimat.labsticc_sensors_temperature_interpolate: Interpolated temperature for each location based on Météo-France stations
 
     Args:
         conn: connexion SQLAlchemy

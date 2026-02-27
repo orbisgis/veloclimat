@@ -199,4 +199,34 @@ Output
 - **Interpolated temperature data**: `veloclimat.veloclimatmeter_temperature_interpolate`
   Interpolated temperature for each location based on Météo-France stations
 
+## interpolate_labsticc_sensors_temperature.py
+
+This script is used to interpolate temperature for each lab-sticc sensor location based on Météo-France stations.
+
+Inputs
+
+- **Cleaned Veloclimatmeter sensor data**: `veloclimat.labsticc_sensors_preprocess`
+- **Triangulated weather stations**: `veloclimat.weather_stations_mf_delaunay`
+- **Points of the Delaunay triangles with station IDs**: `veloclimat.weather_stations_mf_delaunay_pts`
+
+Output
+
+- **Interpolated temperature data**: `veloclimat.labsticc_sensors_temperature_interpolate`
+  Interpolated temperature for each location based on Météo-France stations
+
+## interpolate_labsticc_sensors_reference_temperature.py
+
+This script is used to interpolate temperature for each lab-sticc reference sensor location based on Météo-France stations.
+
+Inputs
+
+- **Cleaned Veloclimatmeter sensor data**: `veloclimat.labsticc_sensors_reference`
+- **Triangulated weather stations**: `veloclimat.weather_stations_mf_delaunay`
+- **Points of the Delaunay triangles with station IDs**: `veloclimat.weather_stations_mf_delaunay_pts`
+
+Output
+
+- **Interpolated temperature data**: `veloclimat.labsticc_sensors_reference_temperature_interpolate`
+  Interpolated temperature for each location based on Météo-France stations
+
 
