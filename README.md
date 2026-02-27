@@ -144,3 +144,29 @@ A set of scripts to analyse the VeloClimat sensor data
 | `ray_glo01`     | int4               | Global radiation                |
 | `elevation`     | float8             | Elevation (in meters)           |
 | `t_ground_0`    | float8             | Ground temperature              |
+
+
+# Scripts
+
+# Preprocess_data_sensors.py
+
+This Python script cleans and preprocesses raw sensor data stored in a PostgreSQL database using SQLAlchemy. 
+It prepares the data for further analysis by ensuring it is clean, consistent, and well-structured.
+
+3 tables are save :
+
+- veloclimatmeter_meteo_raw_process
+- labsticc_sensor_preprocess
+- labsticc_sensor_reference_preprocess
+
+## Main Features
+
+- **Data Cleaning:** Removes duplicates, filters by time and accuracy, and excludes specific entries.
+- **Aggregation:** Aggregates data by second for consistent time intervals.
+- **Speed Calculation:** Computes speeds between consecutive points and applies a sliding window for smoothing.
+- **Unique Identifiers:** Generates unique identifiers for tracking.
+- **Indexing:** Adds indexes for efficient querying.
+
+---
+
+
