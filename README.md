@@ -180,7 +180,7 @@ Each Météo-France station is connected to two other stations through Delaunay 
 The triangles are used to perform linear interpolation of values from the Météo-France data 
 stored in the veloclimat.weather_data_stations_mf table.
 
-Output :
+Outputs :
 - veloclimat.weather_stations_mf_delaunay that contains the delaunay triangles
 - veloclimat.weather_stations_mf_delaunay_pts delaunay points with the station identifier (numer_insee/numer_stat)
 
@@ -234,7 +234,7 @@ Output
 
 This script is used to compute LCZ fractions around sensor locations based on a buffer.
 
-Input:
+Inputs:
 - source_table: Sensor locations with temperature data
 - lcz_table: LCZ polygons table
 - buffer size to compute the fractions

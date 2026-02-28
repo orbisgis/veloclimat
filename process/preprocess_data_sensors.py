@@ -131,7 +131,7 @@ def clean_labsticc_sensors_data(conn):
                 avg(accuracy) as accuracy,
                 avg(elevation) as elevation
             FROM veloclimat.labsticc_sensors_raw
-            WHERE accuracy <= 25 AND thermo_name NOT ILIKE '%reference%'
+            WHERE accuracy <= 25 AND thermo_name NOT ILIKE '%reference%' and temperature is not null
             GROUP BY DATE_TRUNC('second', "timestamp"), sensor_name, thermo_name, id_track;
 
             -- 3. Second step: Remove exact duplicates and stationary points
