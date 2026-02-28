@@ -230,3 +230,15 @@ Output
   Interpolated temperature for each location based on Météo-France stations
 
 
+## lcz_fraction_sensors_temperature.py
+
+This script is used to compute LCZ fractions around sensor locations based on a buffer.
+
+Input:
+- source_table: Sensor locations with temperature data
+- lcz_table: LCZ polygons table
+- buffer size to compute the fractions
+
+Output:
+- output_table: LCZ fractions for each sensor location. The fractions are individualized and grouped by categories : urban, vegetation, bare, water
+
