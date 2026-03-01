@@ -53,6 +53,12 @@ def compute_stats_multiple_hours(config_path, table_name, columns, hours_ranges,
 
     select_clauses = []
 
+    # Ajouter les stats globales UNE SEULE FOIS (en dehors de la boucle)
+    # Utiliser 'Europe/Paris' pour les heures et les dates
+    select_clauses.append('COUNT(DISTINCT CAST("timestamp" AT TIME ZONE \'Europe/Paris\' AS DATE)) as nombre_jours')
+    select_clauses.append('MIN(EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\')) as heure_min')
+    select_clauses.append('MAX(EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\')) as heure_max')
+
     # Pour chaque plage horaire
     for start_hour, end_hour in hours_ranges:
         # Validation: heures entre 0 et 24
@@ -67,15 +73,21 @@ def compute_stats_multiple_hours(config_path, table_name, columns, hours_ranges,
         # Prise en compte des plages cross-midnight (ex: 21-6 = 21h à 23h59 ET 0h à 5h59)
         if start_hour < end_hour:
             # Plage normale (ex: 12-18)
-            where_clause = f'EXTRACT(HOUR FROM "timestamp") >= {start_hour} AND EXTRACT(HOUR FROM "timestamp") < {end_hour}'
+            where_clause = f'EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\') >= {start_hour} AND EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\') < {end_hour}'
         else:
             # Plage cross-midnight (ex: 21-6 = 21h ou plus OU moins de 6h)
-            where_clause = f'(EXTRACT(HOUR FROM "timestamp") >= {start_hour} OR EXTRACT(HOUR FROM "timestamp") < {end_hour})'
+            where_clause = f'(EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\') >= {start_hour} OR EXTRACT(HOUR FROM "timestamp" AT TIME ZONE \'Europe/Paris\') < {end_hour})'
 
         for col in valid_cols:
-            select_clauses.append(f'max("{col}") FILTER (WHERE {where_clause}) as max_{col}_{range_name}')
-            select_clauses.append(f'min("{col}") FILTER (WHERE {where_clause}) as min_{col}_{range_name}')
-            select_clauses.append(f'avg("{col}") FILTER (WHERE {where_clause}) as avg_{col}_{range_name}')
+            # Ajouter un filtre supplémentaire pour TEMPERATURE_TOP et TEMPERATURE_BOT (ignorer <= 0)
+            if col in ['temperature_top', 'temperature_bot']:
+                col_where_clause = f'{where_clause} AND "{col}" > 0'
+            else:
+                col_where_clause = where_clause
+
+            select_clauses.append(f'max("{col}") FILTER (WHERE {col_where_clause}) as max_{col}_{range_name}')
+            select_clauses.append(f'min("{col}") FILTER (WHERE {col_where_clause}) as min_{col}_{range_name}')
+            select_clauses.append(f'avg("{col}") FILTER (WHERE {col_where_clause}) as avg_{col}_{range_name}')
 
         select_clauses.append(f'count(*) FILTER (WHERE {where_clause}) as count_{range_name}')
 
@@ -109,9 +121,30 @@ def compute_stats_multiple_hours(config_path, table_name, columns, hours_ranges,
             print("📊 STATISTIQUES PAR PLAGE HORAIRE")
             print("=" * 70)
 
+            # Afficher les stats globales
+            nombre_jours = row['nombre_jours']
+            heure_min = int(row['heure_min']) if row['heure_min'] is not None else None
+            heure_max = int(row['heure_max']) if row['heure_max'] is not None else None
+
+            # Calcule l'amplitude horaire
+            if heure_min is not None and heure_max is not None:
+                amplitude_horaire = heure_max - heure_min + 1
+            else:
+                amplitude_horaire = None
+
+            print(f"\n📅 {table_name}")
+            print(f"   Jours distincts: {nombre_jours}")
+            if heure_min is not None:
+                print(f"   Heure minimum: {heure_min:02d}h")
+            if heure_max is not None:
+                print(f"   Heure maximum: {heure_max:02d}h")
+            if amplitude_horaire is not None:
+                print(f"   Amplitude horaire: {amplitude_horaire}h (de {heure_min:02d}h à {heure_max:02d}h)")
+
+            # Afficher les stats par plage horaire
             for start_hour, end_hour in hours_ranges:
                 range_name = f"{start_hour:02d}h_{end_hour:02d}h"
-                print(f"\n⏰ {range_name}")
+                print(f"\n⏰ Plage {range_name}")
                 print("-" * 70)
 
                 for col in valid_cols:
@@ -154,9 +187,9 @@ if __name__ == "__main__":
 
     stats_labsticc_sensor = compute_stats_multiple_hours(
         config_path="config.json",
-        table_name="veloclimat.labsticc_sensor",
+        table_name="veloclimat.labsticc_sensors_raw",
         columns=["temperature", "humidity", "accuracy"],
-        hours_ranges=[(12, 18), (21, 6)],
+        hours_ranges=[(0,24)],
         output_table="veloclimat.labsticc_sensor_stats"
     )
 
@@ -164,10 +197,30 @@ if __name__ == "__main__":
 
     stats_veloclimatmeter = compute_stats_multiple_hours(
         config_path="config.json",
-        table_name="veloclimat.veloclimatmeter",
+        table_name="veloclimat.veloclimatmeter_meteo_raw",
         columns=["temperature", "humidite", "vitesse", "temperature_bot", "temperature_top"],
-        hours_ranges=[(12, 18), (21, 6)],
-        output_table="veloclimat.veloclimatmeter_stats"
+        hours_ranges=[(0,24)],
+        output_table="veloclimat.veloclimatmeter_meteo_stats"
+    )
+
+    #Stats par plage
+
+    stats_labsticc_sensor = compute_stats_multiple_hours(
+        config_path="config.json",
+        table_name="veloclimat.labsticc_sensors_raw",
+        columns=["temperature", "humidity", "accuracy"],
+        hours_ranges=[(12,18), (18,24)],
+        output_table="veloclimat.labsticc_sensor_stats_plages"
+    )
+
+    print("\n")
+
+    stats_veloclimatmeter = compute_stats_multiple_hours(
+        config_path="config.json",
+        table_name="veloclimat.veloclimatmeter_meteo_raw",
+        columns=["temperature", "humidite", "vitesse", "temperature_bot", "temperature_top"],
+        hours_ranges=[(12,18), (18,24)],
+        output_table="veloclimat.veloclimatmeter_meteo_stats_plages"
     )
 
     if stats_labsticc_sensor and stats_veloclimatmeter:
