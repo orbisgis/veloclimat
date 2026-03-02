@@ -105,6 +105,7 @@ def interpolate_temperature(conn):
                         --Recupere les données pour comparer
                         CREATE TABLE veloclimat.veloclimatmeter_temperature_interpolate AS
                         SELECT
+                            vmp.unique_id_track,
                             vti.id,
                             vti."timestamp",
                             vti.temperature,

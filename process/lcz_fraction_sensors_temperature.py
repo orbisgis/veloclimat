@@ -196,7 +196,7 @@ def main():
             source_table = "veloclimat.labsticc_sensors_temperature_interpolate"
             output_table = "veloclimat.labsticc_sensors_temperature_lcz"
             lcz_table = "veloclimat.rsu_lcz"
-            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature"]
+            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature","elevation","speed_m_s", "unique_id_track"]
 
             success = lcz_fraction(
                 conn,
@@ -208,13 +208,21 @@ def main():
                 delete_source=False
             )
 
-            if success:
-                print("\n" + "=" * 70)
-                print("✅ Traitement terminé avec succès !")
-                print("=" * 70)
-                return True
-            else:
-                return False
+            # Paramètres obligatoires
+            source_table = "veloclimat.veloclimatmeter_temperature_interpolate"
+            output_table = "veloclimat.veloclimatmeter_temperature_lcz"
+            lcz_table = "veloclimat.rsu_lcz"
+            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature", "temperature_bot", "temperature_top","elevation","speed_m_s",  "unique_id_track"]
+
+            success = lcz_fraction(
+                conn,
+                source_table=source_table,
+                output_table=output_table,
+                lcz_table=lcz_table,
+                columns=columns_to_keep,
+                buffer_size=100,
+                delete_source=False
+            )
 
     except Exception as e:
         print(f"❌ Erreur : {e}")

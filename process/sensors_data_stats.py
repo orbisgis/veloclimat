@@ -158,7 +158,7 @@ def compute_stats_multiple_hours(config_path, table_name, columns, hours_ranges,
                     print(f"    Moyenne: {avg_val:.2f}" if avg_val is not None else f"    Moyenne: N/A")
 
                 count = row[f'count_{range_name}']
-                print(f"  Nombre de lignes: {count if count else 0}")
+                print(f"  Nombre de mesures: {count if count else 0}")
 
             print("\n" + "=" * 70)
             return row
