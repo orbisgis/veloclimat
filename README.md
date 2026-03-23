@@ -148,16 +148,21 @@ A set of scripts to analyse the VeloClimat sensor data
 
 # Scripts
 
-## preprocess_data_sensors.py
+Below you will find an overview of the VeloClimat data processing scripts, along with instructions on how to use and sequence them.
+
+## Step 1 : preprocess_data_sensors.py
 
 This Python script cleans and preprocesses raw sensor data stored in a PostgreSQL database using SQLAlchemy. 
 It prepares the data for further analysis by ensuring it is clean, consistent, and well-structured.
 
-3 tables are save :
+3 tables are saved :
 
 - veloclimatmeter_meteo_preprocess
 - labsticc_sensor_preprocess
 - labsticc_sensor_reference_preprocess
+
+Note : a unique_id_track column is created. It contains a unique fingerprint (a hash-based ID) for each row by combining 
+three columns (id_track::TEXT || '|' || sensor_name || '|' || thermo_name) into a single deterministic string.
 
 ### Main Features
 
@@ -168,7 +173,7 @@ It prepares the data for further analysis by ensuring it is clean, consistent, a
 - **Indexing:** Adds indexes for efficient querying.
 
 
-## prepare_weather_stations_delaunay.py
+## Step 2 : prepare_weather_stations_delaunay.py
 
 This script prepares Météo-France weather station data.
 
@@ -184,7 +189,7 @@ Outputs :
 - veloclimat.weather_stations_mf_delaunay that contains the delaunay triangles
 - veloclimat.weather_stations_mf_delaunay_pts delaunay points with the station identifier (numer_insee/numer_stat)
 
-## interpolate_veloclimatmeter_meteo_temperature.py
+## Step 3 : interpolate_veloclimatmeter_meteo_temperature.py
 
 This script is used to interpolate temperature for each Veloclimatmeter location based on Météo-France stations.
 
@@ -197,7 +202,11 @@ Inputs
 Output
 
 - **Interpolated temperature data**: `veloclimat.veloclimatmeter_temperature_interpolate`
-  Interpolated temperature for each location based on Météo-France stations
+  Interpolated temperature for each location based on Météo-France stations 
+
+Two columns are added 
+- t_inter : interpolated temperature from Météo-France stations
+- diff_temperature : difference between sensor temperature and t_inter
 
 ## interpolate_labsticc_sensors_temperature.py
 
@@ -214,6 +223,10 @@ Output
 - **Interpolated temperature data**: `veloclimat.labsticc_sensors_temperature_interpolate`
   Interpolated temperature for each location based on Météo-France stations
 
+Two columns are added
+- t_inter : interpolated temperature from Météo-France stations
+- diff_temperature : difference between sensor temperature and t_inter
+
 ## interpolate_labsticc_sensors_reference_temperature.py
 
 This script is used to interpolate temperature for each lab-sticc reference sensor location based on Météo-France stations.
@@ -228,6 +241,10 @@ Output
 
 - **Interpolated temperature data**: `veloclimat.labsticc_sensors_reference_temperature_interpolate`
   Interpolated temperature for each location based on Météo-France stations
+
+Two columns are added
+- t_inter : interpolated temperature from Météo-France stations
+- diff_temperature : difference between sensor temperature and t_inter
 
 
 ## lcz_fraction_sensors_temperature.py

@@ -259,7 +259,6 @@ if __name__ == "__main__":
     #    input_table="veloclimat.labsticc_sensor_preprocess",
     #    output_table="veloclimat.labsticc_sensor_preprocess_ibm"
     #)
-
     success, message = calculate_ibm(
         config_path="config.json",
         input_table="""(SELECT temperature, "timestamp" FROM veloclimat.labsticc_sensor_preprocess

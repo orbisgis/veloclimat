@@ -25,10 +25,9 @@ def interpolate_temperature_MF_stations(conn):
             drop table if exists veloclimat.labsticc_sensors_delaunay_pts ;
             create table veloclimat.labsticc_sensors_delaunay_pts as
             select pts.id_pt , pts.the_geom as geom_pt_triangle, pts.id_triangle, pts.numer_insee, t.id, t.the_geom as geom_pt_velo,
-                   t.timestamp, t.elevation, t.temperature, t.thermo_name,  t.speed_m_s, t.unique_id_track  from veloclimat.weather_stations_mf_delaunay_pts as pts, (
+                   t.timestamp, t.elevation, t.temperature, t.thermo_name,  t.speed_m_s, t.unique_id_track, t.sensor_name  from veloclimat.weather_stations_mf_delaunay_pts as pts, (
                 select  b.id_triangle, a.id , a.the_geom, a.elevation, a.temperature, a.timestamp, a.thermo_name,
-                a.speed_m_s,
-                a.unique_id_track
+                a.speed_m_s,a.unique_id_track, a.sensor_name
                 from veloclimat.labsticc_sensors_preprocess as a,
                 veloclimat.weather_stations_mf_delaunay  as b where st_intersects(a.the_geom, b.the_geom)) as t
             where pts.id_triangle = t.id_triangle;
@@ -71,12 +70,13 @@ def interpolate_temperature_MF_stations(conn):
                         geom_pt_velo as the_geom,
                         id_triangle,
                         thermo_name,
+                        sensor_name,
                         unique_id_track
                         from (
                         SELECT
                             ((st_z(st_intersection(triangles.polygon_t_ground_0, s.geom_pt_velo))
                                 +st_z(st_intersection(triangles.polygon_delta_t, s.geom_pt_velo))*s.time_interp_weight)-0.0065*s.elevation) as t_inter,
-                            s.id_triangle, s.geom_pt_velo , s.id, s."timestamp", s.temperature, s.thermo_name, s.unique_id_track, s.speed_m_s, s.elevation
+                            s.id_triangle, s.geom_pt_velo , s.id, s."timestamp", s.temperature, s.thermo_name, s.unique_id_track, s.speed_m_s, s.elevation,s.sensor_name
                         FROM (
                                  SELECT
                                      st_setsrid(ST_MakePolygon(

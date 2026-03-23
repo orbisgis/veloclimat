@@ -196,7 +196,8 @@ def main():
             source_table = "veloclimat.labsticc_sensors_temperature_interpolate"
             output_table = "veloclimat.labsticc_sensors_temperature_lcz"
             lcz_table = "veloclimat.rsu_lcz"
-            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature","elevation","speed_m_s", "unique_id_track", "thermo_name"]
+            columns_to_keep = ["temperature", "t_inter", "timestamp",
+                               "diff_temperature","elevation","speed_m_s", "unique_id_track", "thermo_name", "sensor_name"]
 
             success = lcz_fraction(
                 conn,
@@ -212,7 +213,8 @@ def main():
             source_table = "veloclimat.veloclimatmeter_temperature_interpolate"
             output_table = "veloclimat.veloclimatmeter_temperature_lcz"
             lcz_table = "veloclimat.rsu_lcz"
-            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature", "temperature_bot", "temperature_top","elevation","speed_m_s",  "unique_id_track", "thermo_name"]
+            columns_to_keep = ["temperature", "t_inter", "timestamp", "diff_temperature",
+                               "temperature_bot", "temperature_top","elevation","speed_m_s",  "unique_id_track", "thermo_name", "sensor_name"]
 
             success = lcz_fraction(
                 conn,

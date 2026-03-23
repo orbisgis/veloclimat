@@ -25,8 +25,10 @@ def interpolate_temperature(conn):
             drop table if exists veloclimat.labsticc_sensors_reference_delaunay_pts ;
             create table veloclimat.labsticc_sensors_reference_delaunay_pts as
             select pts.id_pt , pts.the_geom as geom_pt_triangle, pts.id_triangle, pts.numer_insee, t.id, t.the_geom as geom_pt_velo,
-                   t.timestamp, t.elevation, t.temperature  from veloclimat.weather_stations_mf_delaunay_pts as pts, (
-                select  b.id_triangle, a.id , a.the_geom, a.elevation, a.temperature, a.timestamp, a.unique_id_track
+                   t.timestamp, t.elevation, t.temperature, t.unique_id_track,
+                    t.thermo_name,t.sensor_name from veloclimat.weather_stations_mf_delaunay_pts as pts, (
+                select  b.id_triangle, a.id , a.the_geom, a.elevation, a.temperature, a.timestamp, a.unique_id_track,
+                a.thermo_name,a.sensor_name
                 from veloclimat.labsticc_sensors_reference_preprocess as a,
                 veloclimat.weather_stations_mf_delaunay  as b where st_intersects(a.the_geom, b.the_geom)) as t
             where pts.id_triangle = t.id_triangle;
@@ -61,6 +63,8 @@ def interpolate_temperature(conn):
 
                         SELECT DISTINCT ON (id) id,
                         unique_id_track,
+                        thermo_name,
+                        sensor_name,
                         "timestamp",
                         temperature,
                         t_inter ,
@@ -71,7 +75,7 @@ def interpolate_temperature(conn):
                         SELECT
                             ((st_z(st_intersection(triangles.polygon_t_ground_0, s.geom_pt_velo))
                                 +st_z(st_intersection(triangles.polygon_delta_t, s.geom_pt_velo))*s.time_interp_weight)-0.0065*s.elevation) as t_inter,
-                            s.id_triangle, s.geom_pt_velo , s.id, s."timestamp", s.temperature, s.unique_id_track
+                            s.id_triangle, s.geom_pt_velo , s.id, s."timestamp", s.temperature, s.unique_id_track, s.thermo_name,s.sensor_name
                         FROM (
                                  SELECT
                                      st_setsrid(ST_MakePolygon(

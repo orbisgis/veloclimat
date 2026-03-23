@@ -117,7 +117,8 @@ def interpolate_temperature(conn):
                             vmp.temperature_bot,
                             vmp.temperature_top,
                             vmp.elevation,
-                            vmp.thermo_name
+                            vmp.thermo_name,
+                            vmp.sensor_name                            
                         FROM veloclimat.veloclimatmeter_temperature_interpolate_tmp vti
                         LEFT JOIN veloclimat.veloclimatmeter_meteo_preprocess vmp
                             ON vti.id = vmp.id;                        
