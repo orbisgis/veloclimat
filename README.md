@@ -286,9 +286,6 @@ Below the content of the table
 
 A script to display the temperature differences between the city center and the countryside in Alençon on August 26, 2025
 
-markdown
-Copier
-
 ![ temperature differences between the city center and the countryside](images/transect_temperature_elevation_diff_Alençon%20-%20Matthieu.png)
 
 
