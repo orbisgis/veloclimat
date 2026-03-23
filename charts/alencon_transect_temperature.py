@@ -6,7 +6,7 @@ import matplotlib.ticker as mticker
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from process.utils import create_engine_from_config
 
-# Script to create the chart for alencon transect
+# Script to create the chart for Alençon transect
 
 # Configuration de la base de données
 CONFIG_PATH = "config.json"
@@ -85,7 +85,7 @@ try:
         linestyle='-',
         linewidth=1.5,
         zorder=2,
-        label='Élévation'
+        label='Altitude'
     )
 
     # Tracé des marqueurs pour la température, colorés par diff_temperature (style QGIS)
@@ -183,7 +183,7 @@ try:
         linewidth=1.5,
         zorder=3
     )
-    ax2.set_ylabel("Élévation (m)", fontsize=12, color='gray')
+    ax2.set_ylabel("Altitude (m)", fontsize=12, color='gray')
     ax2.tick_params(axis='y', labelcolor='gray')
 
     # Grille
@@ -193,8 +193,14 @@ try:
     box = ax1.get_position()
     ax1.set_position([box.x0, box.y0 + 0.05, box.width, box.height * 0.85])
 
+    ax1.text(df['timestamp'].min(), ax1.get_ylim()[0], 'Départ',
+             fontsize=11, ha='left', va='bottom', color='black')
+
+    ax1.text(df['timestamp'].max(), ax1.get_ylim()[0], 'Arrivée',
+         fontsize=11, ha='right', va='bottom', color='black')
+
     # Ajout d'un titre pour la barre de couleur à gauche
-    fig.text(0.05, 0.12, 'Différence de température (°C)', ha='left', fontsize=10)
+    fig.text(box.x0, box.y0, 'Ecart de température (°C)', ha='left', fontsize=10)
 
     # Ajout de l'axe pour la barre de couleur sous l'axe X
     cax = fig.add_axes([box.x0, box.y0 - 0.05, box.width, 0.03])
@@ -204,12 +210,12 @@ try:
         '+1', '+2', '+3', '> +3'
     ], rotation=0, ha='center')
 
-    # Titre ajusté pour éviter le chevauchement
+    # Titre ajusté pour éviter le chevauchement, marche pas sniff
     #plt.suptitle(f"Évolution de la température et de l'élévation pour {THERMO_NAME}\n(Coloration des marqueurs : différence de température, style QGIS)",
     #             fontsize=14, y=0.95)
 
     # Sauvegarde du graphique
-    fichier_sortie_png = f"{DOSSIER_SORTIE}temperature_elevation_diff_temp_qgis_style_legend_{THERMO_NAME}.png"
+    fichier_sortie_png = f"{DOSSIER_SORTIE}transect_temperature_elevation_diff_{THERMO_NAME}.png"
     plt.savefig(fichier_sortie_png, dpi=300, bbox_inches='tight', transparent=False)
 
     print(f"✅ Graphique sauvegardé : {fichier_sortie_png}")

@@ -146,7 +146,7 @@ A set of scripts to analyse the VeloClimat sensor data
 | `t_ground_0`    | float8             | Ground temperature              |
 
 
-# Scripts
+# Processing scripts
 
 Below you will find an overview of the VeloClimat data processing scripts, along with instructions on how to use and sequence them.
 
@@ -278,3 +278,7 @@ Below the content of the table
 | lcz_vegetation           | FLOAT          | Total fraction of vegetation zones (LCZ 101 to 104) within the buffer.                 |
 | lcz_bare                 | FLOAT          | Fraction of LCZ 106 (bare soil) within the buffer.                                     |
 | lcz_water                | FLOAT          | Fraction of LCZ 107 (water) within the buffer.                                         |
+
+
+# Chart scripts
+
