@@ -208,7 +208,7 @@ Two columns are added
 - t_inter : interpolated temperature from Météo-France stations
 - diff_temperature : difference between sensor temperature and t_inter
 
-## interpolate_labsticc_sensors_temperature.py
+## Step 4 : interpolate_labsticc_sensors_temperature.py
 
 This script is used to interpolate temperature for each lab-sticc sensor location based on Météo-France stations.
 
@@ -227,7 +227,7 @@ Two columns are added
 - t_inter : interpolated temperature from Météo-France stations
 - diff_temperature : difference between sensor temperature and t_inter
 
-## interpolate_labsticc_sensors_reference_temperature.py
+## Step 5 : interpolate_labsticc_sensors_reference_temperature.py
 
 This script is used to interpolate temperature for each lab-sticc reference sensor location based on Météo-France stations.
 
@@ -247,7 +247,7 @@ Two columns are added
 - diff_temperature : difference between sensor temperature and t_inter
 
 
-## lcz_fraction_sensors_temperature.py
+## Step 6 : lcz_fraction_sensors_temperature.py
 
 This script is used to compute LCZ fractions around sensor locations based on a buffer.
 
@@ -259,3 +259,22 @@ Inputs:
 Output:
 - output_table: LCZ fractions for each sensor location. The fractions are individualized and grouped by categories : urban, vegetation, bare, water
 
+Below the content of the table
+
+| Field Name               | PostgreSQL Type | Description                                                                            |
+|--------------------------|----------------|----------------------------------------------------------------------------------------|
+| id                       | INTEGER        | Unique identifier for the sensor point (inherited from the source table).              |
+| the_geom                 | GEOMETRY       | Geometry of the sensor point (inherited from the source table).                        |
+| [source columns]         | [source types] | Columns specified in the `columns` parameter (e.g., `temperature`, `timestamp`, etc.). |
+| lcz_primary_max          | VARCHAR/INTEGER| Primary LCZ with the largest fraction around the sensor.                               |
+| lcz_primary_max_2        | VARCHAR/INTEGER| Second primary LCZ with the largest fraction around the sensor.                         |
+| lcz_1                    | FLOAT          | Fraction of LCZ 1 within the buffer around the sensor.                                  |
+| lcz_2                    | FLOAT          | Fraction of LCZ 2 within the buffer around the sensor.                                  |
+| ...                      | ...            | ... (for each LCZ value, e.g., `lcz_3`, `lcz_4`, etc.)                                 |
+| lcz_10                   | FLOAT          | Fraction of LCZ 10 within the buffer around the sensor.                                 |
+| lcz_101                  | FLOAT          | Fraction of LCZ 101 within the buffer around the sensor.                                |
+| ...                      | ...            | ... (for each additional LCZ value, e.g., `lcz_102`, `lcz_103`, etc.)                  |
+| lcz_urban                | FLOAT          | Total fraction of urban zones (LCZ 1 to 10 and 105) within the buffer.                 |
+| lcz_vegetation           | FLOAT          | Total fraction of vegetation zones (LCZ 101 to 104) within the buffer.                 |
+| lcz_bare                 | FLOAT          | Fraction of LCZ 106 (bare soil) within the buffer.                                     |
+| lcz_water                | FLOAT          | Fraction of LCZ 107 (water) within the buffer.                                         |
