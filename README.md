@@ -91,29 +91,6 @@ A set of scripts to analyse the VeloClimat sensor data
 | `thermo_name`       | varchar            | Name of the thermo party                         |
 | `sensor_name`       | varchar            | Name of the sensor                               |
 
----
-
-## Table: `veloclimat.physio_records_raw`
-
-| Column                     | Type               | Description                              |
-|----------------------------|--------------------|------------------------------------------|
-| `id`                       | int4               | Unique identifier            |
-| `the_geom`                 | geometry(Point, 4326) | Geographic location (WGS84 coordinates) |
-| `rider`                    | varchar            | Rider identifier                         |
-| `enhanced_speed`           | float8             | Enhanced speed                            |
-| `enhanced_altitude`        | float8             | Enhanced altitude                        |
-| `heart_rate`               | int4               | Heart rate                               |
-| `core_temperature`         | float8             | Core temperature                         |
-| `skin_temperature`         | float8             | Skin temperature                         |
-| `core_data_quality`        | int4               | Core data quality                        |
-| `core_reserved`            | int4               | Reserved field                           |
-| `heat_strain_index`        | float8             | Heat strain index                        |
-| `total_hemoglobin_conc`    | int4               | Total hemoglobin concentration            |
-| `CIQ_core_temperature`    | float8             | CIQ core temperature                     |
-| `temperature`              | int4               | Temperature                              |
-| `saturated_hemoglobin_percent` | int4          | Saturated hemoglobin percentage          |
-| `CIQ_skin_temperature`    | float8             | CIQ skin temperature                     |
-| `time_date`                | varchar(50)        | Time and date                            |
 
 ---
 
